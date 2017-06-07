@@ -13,7 +13,7 @@
 * Any C++ compiler which support C++11
 
 
-### Running
+## Running
 
 * To run the program:
 ```
@@ -32,6 +32,6 @@ make clean
 ```
 **Don't forget to put your compiled shader file with extension name .spv into shader folder.**
 
-### Result
+## Result
 
 ![](https://github.com/jb892/Vulkan-test/blob/master/Vulkan-first-triangle.png "Rendered Triangle")
