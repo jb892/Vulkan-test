@@ -16,16 +16,21 @@
 ### Running
 
 * To run the program:
-```sh
+```
 make
 ./VulkanTest
 ```
 
 * To make a clean:
-```sh
+```
 make clean
 ```
 
+* To compile the vertex and fragment shader:
+```
+./compile.sh
+```
+** Don't forget to put your compiled shader file with extension name .spv into shader folder.
 
 ### Result
 
