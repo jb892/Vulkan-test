@@ -30,7 +30,7 @@ make clean
 ```
 ./compile.sh
 ```
-**Don't forget to put your compiled shader file with extension name .spv into shader folder.**
+**N.B.: Don't forget to put your compiled shader file with extension name .spv into shader folder.**
 
 ## Result
 
