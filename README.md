@@ -10,6 +10,10 @@
 
 * [CMake](https://cmake.org/) VERSION >= 3.7.1 installed
 
+* [stb Image Loader](https://github.com/nothings/stb) (Already included in the 'include' directory.)
+
+* [TINYOBJ Model Loader](https://github.com/syoyo/tinyobjloader) (Already included in the 'include' directory.)
+
 * Any C++ compiler which support C++11
 
 
@@ -35,3 +39,4 @@ make clean
 ## Result
 
 ![](https://github.com/jb892/Vulkan-test/blob/master/Vulkan-first-triangle.png "Rendered Triangle")
+![](https://github.com/jb892/Vulkan-test/blob/master/ModelWithTexture.png "Loaded OBJ Model with texture")
