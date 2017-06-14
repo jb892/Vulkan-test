@@ -27,6 +27,18 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+glm::vec3 cam_pos = {2.0f, 2.0f, 2.0f};
+glm::vec3 cam_look_at = {0.0f, 0.0f, 0.0f};
+glm::vec3 cam_up = {0.0f, 0.0f, 1.0f};
+//glm::vec3 obj_center = {0.0f, 0.0f, 0.0f};
+const float zoom_speed = 0.02f;
+const float rotation_speed = 0.5f;
+float current_zoom_ratio = 0.0f;
+bool isMouseLeftButtonPressed = false;
+double mouse_xpos_cache, mouse_ypos_cache;
+float x_rotation = 0.0f;
+float y_rotation = 0.0f;
+
 const std::string MODEL_PATH = "models/chalet.obj";
 const std::string TEXTURE_PATH = "textures/chalet.jpg";
 
@@ -194,6 +206,12 @@ private:
 
         glfwSetWindowSizeCallback(window, HelloTriangleApplication::onWindowResized);
 
+        glfwSetCursorPosCallback(window, HelloTriangleApplication::onCursorMoved);
+
+        glfwSetMouseButtonCallback(window, HelloTriangleApplication::onMouseButtonCallback);
+
+        glfwSetScrollCallback(window, HelloTriangleApplication::onScrollCallback);
+
     }
 
     void initVulkan() {
@@ -314,6 +332,41 @@ private:
         HelloTriangleApplication* app = reinterpret_cast<HelloTriangleApplication*>
                 (glfwGetWindowUserPointer(window));
         app->recreateSwapChain();
+    }
+
+    static void onCursorMoved(GLFWwindow* window, double xpos, double ypos) {
+        if (isMouseLeftButtonPressed) {
+            double x_dis, y_dis;
+            x_dis = (xpos - mouse_xpos_cache) * rotation_speed;
+            y_dis = (ypos - mouse_ypos_cache) * rotation_speed;
+
+            mouse_xpos_cache = xpos;
+            mouse_ypos_cache = ypos;
+
+            x_rotation += x_dis;
+            y_rotation += y_dis;
+        }
+    }
+
+    static void onMouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+        double xpos, ypos;
+        if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+            glfwGetCursorPos(window, &xpos, &ypos);
+
+            mouse_xpos_cache = xpos;
+            mouse_ypos_cache = ypos;
+
+            isMouseLeftButtonPressed = true;
+        } else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE){
+            isMouseLeftButtonPressed = false;
+        }
+    }
+
+    static void onScrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+        current_zoom_ratio += yoffset * zoom_speed;
+
+        if (current_zoom_ratio >= 1.0)
+            current_zoom_ratio -= yoffset * zoom_speed;
     }
 
     void createSurface() {
@@ -1524,17 +1577,34 @@ private:
     }
 
     void updateUniformBuffer() {
-        static auto startTime = std::chrono::high_resolution_clock::now();
+//        static auto startTime = std::chrono::high_resolution_clock::now();
 
-        auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()/1000.0f;
+//        auto currentTime = std::chrono::high_resolution_clock::now();
+//        float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()/1000.0f;
 
 //        std::cout<<"Time = "<<time<<std::endl;
 
         UniformBufferObject ubo = {};
+
+        glm::vec3 cam_direct = cam_look_at - cam_pos;
+        glm::vec3 cam_new_pos = cam_pos + current_zoom_ratio * cam_direct;
+
+        glm::vec3 x_rotat_axis = glm::normalize(glm::cross(cam_direct, cam_up));
+//        glm::vec3 y_rotat_axis = glm::normalize(glm::cross(x_rotat_axis, cam_direct));
+
+        if (fabs(x_rotation) > 360.0)
+            x_rotation = fmod(x_rotation, 360.0);
+
+        if (fabs(y_rotation) > 360.0)
+            y_rotation = fmod(y_rotation, 360.0);
+
+        glm::mat4 x_rotation_mat = glm::rotate(glm::mat4(), glm::radians(x_rotation), cam_up);
+        glm::mat4 y_rotation_mat = glm::rotate(glm::mat4(), glm::radians(y_rotation), x_rotat_axis);
+
         // Rotating around z-axis with respect to time.
-        ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+//        ubo.model = glm::rotate(glm::mat4(), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.model = y_rotation_mat * x_rotation_mat;
+        ubo.view = glm::lookAt(cam_new_pos, cam_look_at, cam_up);
         // perspective projection with a 45 degree vertical FOV. Aspect Ratio = width/height, Near plane, far plane.
         ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width/(float)swapChainExtent.height, 0.1f, 10.0f);
 
